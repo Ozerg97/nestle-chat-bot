@@ -24,7 +24,7 @@ This allows the chatbot to answer complex queries like:
 
 ## 🔧 Installation
 
-git clone https://github.com/Ozerg97/nestle_ai_bot_ozer.git
-install libraries from requirement.txt
-run the app.py file
+- git clone https://github.com/Ozerg97/nestle_ai_bot_ozer.git
+- install libraries from requirement.txt
+- run the app.py file
 
