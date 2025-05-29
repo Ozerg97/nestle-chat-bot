@@ -20,7 +20,6 @@ This allows the chatbot to answer complex queries like:
 - Graph database integration using Neo4j
 - Hybrid retrieval with GraphRAG + vector database
 - Response generation with Gemini (Vertex AI)
-- Modular architecture (Flask/FastAPI compatible)
 
 ## 🔧 Installation
 
