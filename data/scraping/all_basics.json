@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://www.madewithnestle.ca/privacy-policy",
+    "title": "Privacy Policy",
+    "categorie": "Information"
+  },
+  {
+    "url": "https://www.madewithnestle.ca/terms-and-conditions",
+    "title": "Terms and conditions",
+    "categorie": "Information"
+  },
+  {
+    "url": "https://www.madewithnestle.ca/nestle-cookies-policy",
+    "title": "Cookies Policy",
+    "categorie": "Information"
+  },
+  {
+    "url": "https://www.madewithnestle.ca/peanut-free",
+    "title": "Peanut Free",
+    "categorie": "Information"
+  },
+  {
+    "url": "https://www.madewithnestle.ca/about-us",
+    "title": "About us",
+    "categorie": "Information"
+  },
+  {
+    "url": "https://www.madewithnestle.ca/help",
+    "title": "Contact us",
+    "categorie": "Information"
+  },
+  {
+    "url": "https://www.corporate.nestle.ca/en/jobs",
+    "title": "Careers",
+    "categorie": "Information"
+  },
+  {
+    "url": "https://www.corporate.nestle.ca/en/aboutus",
+    "title": "Corporate information",
+    "categorie": "Information"
+  },
+  {
+    "title": "Nestlé Brands",
+    "Brands": "Aero, COFFEE CRISP, Drumstick bites, Kit Kat, Smarties, Turtles, After Eight, Big Turk, Crunch, Mackintosh Toffee, Mirage, Quality Street, Rolo, Coffee Mate, NESCAFÉ, Haagen-Dazs, Del Monte, IOGO, Parlour, Real Dairy, Nido, Nesté Materna, Maggi, Boost, Purina, Essentia, Perrier, GoodHost, Milo, Nestea, Nesfruta, Carnation Hot Chocolate, Nesquick",
+    "categorie": "Information"
+  }
+]

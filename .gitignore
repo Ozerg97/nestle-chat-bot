@@ -1,0 +1,75 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.log
+
+# === Environnements ===
+.venv/
+env/
+ENV/
+venv/
+pip-wheel-metadata/
+*.sqlite3
+
+# === Credentials / Secrets ===
+project/.env
+project/.env.*
+.env
+.env.*
+credentials.json
+google_credentials.json
+vertexai_key.json
+
+# === cloud credentials ===
+project/endless-sol-460715-q9-a552b2b3b80e.json
+
+# === Jupyter / Colab ===
+.ipynb_checkpoints/
+
+# === VSCode / IDEs ===
+.vscode/
+.idea/
+*.code-workspace
+
+# === Docker ===
+*.tar
+*.dockerfile
+docker-compose.override.yml
+
+# === Frontend ===
+frontend/node_modules/
+frontend/dist/
+frontend/.next/
+frontend/.cache/
+*.lock
+
+# === Mac / Windows / Linux System ===
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+~$*
+
+# === Neo4j dumps (si utilisés) ===
+*.dump
+
+# === Test / Coverage ===
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.pytest_cache/
+.coverage*
+
+# === Local dev files ===
+*.bak
+*.swp
+*.tmp
+*.log

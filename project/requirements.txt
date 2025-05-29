@@ -1,0 +1,12 @@
+Flask
+gunicorn
+python-dotenv
+markdown
+requests
+neo4j
+spacy
+google-cloud-aiplatform
+google-generativeai
+google-auth
+google-api-core
+flask-cors
