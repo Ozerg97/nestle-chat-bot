@@ -72,7 +72,7 @@ The module successfully identified the structured queries and returned precise c
 
 ### Assumptions
 - I initially thought I could use **PriceSpider** to get real store links by extracting parameters from HTML elements. However, I didn't have enough data to fully implement this feature.
-- For the **Intelligent Product Count** module, I assumed that users would use the correct keywords (e.g., “product,” “products”) for the system to detect structured queries properly.
+- For the **Intelligent Product Count** module, I assumed that users would use the correct keywords (e.g., “product,” “products”) for the system to detect structured queries properly. If users misspell words (e.g., “produvt”), the system might not detect the structured query and will default to a general count.
 - I also assumed that category and brand names would be written correctly to match my stored data (e.g., "coffee" instead of "cofee").
 
 ### Limitations
