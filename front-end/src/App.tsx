@@ -18,7 +18,7 @@ const App: React.FC = () => {
           fetch("https://nestle2-158884498350.us-central1.run.app/user_location", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-
+            credentials: "include",
             body: JSON.stringify({ latitude, longitude }),
           })
             .then(() =>  console.log("Coordinates sent"))

@@ -32,6 +32,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ coords }) => {
       const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ 
           question, 
           latitude: coords?.latitude,

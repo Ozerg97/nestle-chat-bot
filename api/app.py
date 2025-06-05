@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template, session
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 from graph_search     import fetch_graphrag_data 
 from graph_query import FETCH_GRAPH_QUERY
 from llm import format_graph_content
@@ -16,13 +16,24 @@ from llm import generate_gemini_response
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "change-me")  
+app.config.update(
+    SESSION_COOKIE_SAMESITE='None',
+    SESSION_COOKIE_SECURE=True
+)
+
+CORS(
+    app,
+    origins=["https://nestle-ui-158884498350.us-central1.run.app"],
+    supports_credentials=True,
+    methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+)
 
 
-CORS(app, origins="*", supports_credentials=False)
-
-
-@app.route("/user_location",  methods=["POST"])
+@app.route("/user_location",  methods=["POST", "OPTIONS"])
 def user_location():
+    if request.method == "OPTIONS":   
+        return '', 204
     payload = request.get_json(silent=True) or {}
     session["latitude"]  = payload.get("latitude")
     session["longitude"] = payload.get("longitude")
@@ -32,8 +43,10 @@ def user_location():
 
 
 
-@app.route('/ask',  methods=["POST"])
+@app.route('/ask',  methods=["POST", "OPTIONS"])
 def ask():
+    if request.method == "OPTIONS":  
+        return '', 204
     data   = request.get_json(silent=True) or {}
 
     question = data.get('question')  # user question

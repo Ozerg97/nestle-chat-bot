@@ -10,3 +10,4 @@ google-generativeai
 google-auth
 google-api-core
 flask-cors
+regex
