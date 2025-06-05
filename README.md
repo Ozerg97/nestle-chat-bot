@@ -22,7 +22,7 @@ This project showcases an AI chatbot capable of answering detailed and accurate 
 | **Embeddings** | Generates embeddings using **`text-embedding-004`** (Vertex AI). |
 | **Knowledge Graph** | Loads *Product*, *Recipe*, *Brand*, *Category*, *Ingredient* nodes (and their relations) into **Neo4j Aura** for cloud-based graph queries. |
 | **Vector Store** | Uses Vector Search for fast top-k semantic retrieval. |
-| **Hybrid Retrieval** | A router detects structured queries (“how many,” “list all,” “where to buy,” etc.) and uses either Cypher queries or vector search to build context. |
+| **Hybrid Retrieval** | A router detects structured queries (“how many”, ” “where to buy,” etc.) and uses either Cypher queries or vector search to build context. |
 | **LLM Generation** | Integrates **Gemini 2.0-Flash** (Vertex AI) with a custom prompt to produce clean, structured answers (e.g., bullet points, hyperlinks). |
 | **Real-Time UI** | Built with React, supports streaming responses, user/model roles, auto-scrolling, and chat history. |
 
