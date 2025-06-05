@@ -18,13 +18,13 @@ This project showcases an AI chatbot capable of answering detailed and accurate 
 
 | Feature | Details |
 |---------|---------|
-| **Web Scraping** | Recursively scrapes the sitemap XML of MadeWithNestlé to extract product and recipe pages. |
-| **Embeddings** | Generates embeddings using **`text-embedding-gecko`** (Vertex AI). |
+| **Web Scraping** | Recursively scrapes the sitemap XML of MadeWithNestlé to extract product, recipe, article and information pages. |
+| **Embeddings** | Generates embeddings using **`text-embedding-004`** (Vertex AI). |
 | **Knowledge Graph** | Loads *Product*, *Recipe*, *Brand*, *Category*, *Ingredient* nodes (and their relations) into **Neo4j Aura** for cloud-based graph queries. |
-| **Vector Store** | Uses FAISS locally (dev) or BigQuery Vector Search (prod) for fast top-k semantic retrieval. |
+| **Vector Store** | Uses Vector Search for fast top-k semantic retrieval. |
 | **Hybrid Retrieval** | A router detects structured queries (“how many,” “list all,” “where to buy,” etc.) and uses either Cypher queries or vector search to build context. |
-| **LLM Generation** | Integrates **Gemini 1.5-Flash** (Vertex AI) with a custom prompt to produce clean, structured answers (e.g., bullet points, hyperlinks). |
-| **Real-Time UI** | Built with React and Tailwind CSS, supports streaming responses, user/model roles, auto-scrolling, and chat history. |
+| **LLM Generation** | Integrates **Gemini 2.0-Flash** (Vertex AI) with a custom prompt to produce clean, structured answers (e.g., bullet points, hyperlinks). |
+| **Real-Time UI** | Built with React, supports streaming responses, user/model roles, auto-scrolling, and chat history. |
 
 ---
 
@@ -33,7 +33,7 @@ This project showcases an AI chatbot capable of answering detailed and accurate 
 | Layer | Technology |
 |-------|------------|
 | **Frontend** | React (Vite) · TypeScript |
-| **Backend API** | Python 3.11 · Flask · Flask-CORS |
+| **Backend API** | Python 3.11 · Flask  |
 | **LLM** | Google Vertex AI – Gemini Flash |
 | **Embeddings** | text-embedding-gecko |
 | **Graph DB** | Neo4j Aura (free tier) |
