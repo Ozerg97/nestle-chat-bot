@@ -49,7 +49,7 @@ I implemented a separate module (`structured_query_router.py`) that uses regex a
 - Example queries:
   - **"How many products under the coffee category?"** triggers a Cypher query counting nodes with the `IN_CATEGORY` relationship.
   - **"How many products by KitKat?"** uses the `BRANDED_AS` relationship to filter products by brand.
-  - 
+  
 ### 2. Fallback to Vector Search
 If no structured query keywords are found, the system falls back to the default **vector search pipeline**, combining semantic retrieval and generative answers via **Gemini (Vertex AI)**.
 
