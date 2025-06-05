@@ -1,32 +1,63 @@
-import json, os
-from neo4j import GraphDatabase
+from __future__ import annotations
+import json, os, pathlib, re
+from typing import Any, Dict, List
 from dotenv import load_dotenv
+from neo4j import GraphDatabase, Transaction
 
-# 1  Connection details ────────────────────────────────────
+# ─────────────────────────────
+# 1) Configuration & helpers
+# ─────────────────────────────
 load_dotenv()
 URI  = os.getenv("NEO4J_URI")
 USER = os.getenv("NEO4J_USERNAME", "neo4j")
 PWD  = os.getenv("NEO4J_PASSWORD")
 
-# 2  Constraints & indexes ─────────────────────────────────
+VECTORS_DIR = pathlib.Path("data/vectorDB/vector_documents")
+assert VECTORS_DIR.exists(), f"Dossier {VECTORS_DIR} introuvable"
+
+_SPLIT_ING = re.compile(r",|;")
+
+def _split_ingredients(raw: str | None) -> List[str]:
+    """Return a clean list of individual ingredient strings."""
+    if not raw:
+        return []
+    return [i.strip() for i in _SPLIT_ING.split(raw) if i.strip()]
+
+# ─────────────────────────────
+# 2) Schema (constraints / indexes)
+# ─────────────────────────────
 CONSTRAINTS = [
-    "CREATE CONSTRAINT IF NOT EXISTS FOR (r:Recipe)  REQUIRE r.title IS UNIQUE",
-    "CREATE CONSTRAINT IF NOT EXISTS FOR (p:Product) REQUIRE p.title IS UNIQUE",
-    "CREATE CONSTRAINT IF NOT EXISTS FOR (i:Ingredient) REQUIRE i.name IS UNIQUE",
-    "CREATE CONSTRAINT IF NOT EXISTS FOR (n:Nutrient)   REQUIRE n.name IS UNIQUE",
-    "CREATE CONSTRAINT IF NOT EXISTS FOR (f:Feature)    REQUIRE f.text IS UNIQUE",
-    "CREATE CONSTRAINT IF NOT EXISTS FOR (b:Brand)      REQUIRE b.name IS UNIQUE",
+    "CREATE CONSTRAINT IF NOT EXISTS FOR (n:Recipe)   REQUIRE n.vector_id IS UNIQUE",
+    "CREATE CONSTRAINT IF NOT EXISTS FOR (n:Product)  REQUIRE n.vector_id IS UNIQUE",
+    "CREATE CONSTRAINT IF NOT EXISTS FOR (n:Brand)    REQUIRE n.name      IS UNIQUE",
+    "CREATE CONSTRAINT IF NOT EXISTS FOR (n:Category) REQUIRE n.name      IS UNIQUE",
+    "CREATE CONSTRAINT IF NOT EXISTS FOR (n:Ingredient) REQUIRE n.name   IS UNIQUE",
+    "CREATE CONSTRAINT IF NOT EXISTS FOR (n:Feature)  REQUIRE n.text      IS UNIQUE",
+    "CREATE CONSTRAINT IF NOT EXISTS FOR (n:Article)  REQUIRE n.vector_id IS UNIQUE",
+    "CREATE CONSTRAINT IF NOT EXISTS FOR (n:Information) REQUIRE n.vector_id IS UNIQUE",
+    "CREATE CONSTRAINT IF NOT EXISTS FOR (s:Store)    REQUIRE (s.name, s.address) IS UNIQUE",
 ]
 
-FULLTEXT_IDX = """
-    CREATE FULLTEXT INDEX recipeProductSearch IF NOT EXISTS
-    FOR (n:Recipe|Product) ON EACH [n.title, n.description]
-"""
+FULLTEXT_IDX = (
+    "CREATE FULLTEXT INDEX searchTitles IF NOT EXISTS "
+    "FOR (n:Recipe|Product|Article) ON EACH [n.title, n.description, n.features]"
+)
 
-# 3  Cypher helpers ────────────────────────────────────────
-def insert_recipe(tx, rec):
-    tx.run("""
+POINT_IDX = (
+    "CREATE POINT INDEX storeLocation IF NOT EXISTS FOR (s:Store) ON (s.location)"
+)
+
+# ─────────────────────────────
+# 3) Write‑transactions (Cypher)
+# ─────────────────────────────
+
+def insert_recipe(tx: Transaction, meta: Dict[str, Any], vector_id: str):
+    if not meta.get("title"):
+        return
+    tx.run(
+        """
         MERGE (r:Recipe {title:$title})
+        ON CREATE SET r.vector_id=$vid
         SET  r += {
             url:$url, description:$desc, image:$img,
             prep_time:$prep, cook_time:$cook,
@@ -37,101 +68,207 @@ def insert_recipe(tx, rec):
         UNWIND $ingredients AS ing
             MERGE (i:Ingredient {name:ing})
             MERGE (r)-[:CONTAINS]->(i)
-    """, title=rec["title"], url=rec["url"], desc=rec.get("description",""),
-         img=rec.get("image",""), prep=rec.get("prep_time",""),
-         cook=rec.get("cook_time",""), total=rec.get("total_time",""),
-         serv=rec.get("servings",""), skill=rec.get("skill_level",""),
-         steps=rec.get("instructions",[]), ingredients=rec["ingredients"])
+        """,
+        title=meta.get("title", ""),
+        url=meta.get("url", ""),
+        desc=meta.get("description", ""),
+        img=meta.get("image", ""),
+        prep=meta.get("prep_time", ""),
+        cook=meta.get("cook_time", ""),
+        total=meta.get("total_time", ""),
+        serv=meta.get("servings", ""),
+        skill=meta.get("skill_level", ""),
+        steps=meta.get("instructions", []),
+        ingredients=meta.get("ingredients", []),
+        vid=vector_id,
+    )
 
-def insert_product(tx, prod):
-    nutrients = [n.split(":")[0].strip()
-                 for n in prod.get("nutrition", []) if ":" in n]
-    nutrition = prod.get("nutrition") or []
-    ing_raw = prod.get("ingredients") or ""
-    ing_list = [i.strip() for i in ing_raw.split(",") if i.strip()]
 
-    title  = prod.get("title","")
-    brand  = title.split()[0] if title else None
-    made_ca = any(k in (prod.get("description") or "").lower()
-              for k in ["canadian", "crafted in canada", "made in canada"])
+def insert_product(tx: Transaction, meta: Dict[str, Any], vector_id: str):
+    if not meta.get("title"):
+        return
 
-    tx.run("""
+    # ── Pre‑processing ────────────────────────────────────────────────
+    ing_raw: str = meta.get("ingredients") or ""
+    ingredients = _split_ingredients(ing_raw)
+
+    title: str = meta.get("title", "")
+    brand: str | None = meta.get("brand") or (title.split()[0] if title else None)
+    category: str | None = meta.get("category")
+
+    tx.run(
+        """
         MERGE (p:Product {title:$title})
+        ON CREATE SET p.vector_id=$vid
         SET  p += {
-            url:$url, description:$desc, size:$size,
-            image:$img, ingredients_text:$ing_raw,
-            features:$features, nutrition:$nutrition
+            url:$url, description:$desc, size:$size, image:$img,
+            ingredients_text:$ing_raw, features:$features,
+            nutrition:$nutrition_lines, amazon_link:$amazon_link
         }
 
+        // ── Features ─────────────────────────
         WITH p
         UNWIND $features AS f
             MERGE (fNode:Feature {text:f})
             MERGE (p)-[:HAS_FEATURE]->(fNode)
 
-        WITH p
-        UNWIND $nutrients AS n
-            MERGE (nut:Nutrient {name:n})
-            MERGE (p)-[:HAS_NUTRIENT]->(nut)
-
+        // ── Ingredients ───────────────────────
         WITH p
         UNWIND $ingredients AS ing
             MERGE (i:Ingredient {name:ing})
             MERGE (p)-[:CONTAINS]->(i)
 
+        // ── Brand (optional) ──────────────────
         WITH p
         WHERE $brand IS NOT NULL
             MERGE (b:Brand {name:$brand})
             MERGE (p)-[:BRANDED_AS]->(b)
 
+        // ── Category (optional) ───────────────
         WITH p
-        WHERE $made_in_canada
-            MERGE (c:Country {name:'Canada'})
-            MERGE (p)-[:MADE_IN]->(c)
-    """, title=title, url=prod["url"], desc=prod["description"],
-         size=prod["size"], img=prod["image"], ing_raw=ing_raw,
-         features=prod.get("features",[]), nutrition=nutrition, nutrients=nutrients,
-         ingredients=ing_list, brand=brand, made_in_canada=made_ca)
+        WHERE $category IS NOT NULL
+            MERGE (c:Category {name:$category})
+            MERGE (p)-[:IN_CATEGORY]->(c)
 
-# 4  Recipe ↔ Product linking by shared ingredients ────────
-LINK_RECIPES_PRODUCTS = """
-MATCH (r:Recipe)-[:CONTAINS]->(i:Ingredient)<-[:CONTAINS]-(p:Product)
-MERGE (r)-[:USES {via:i.name}]->(p)
-"""
+        // ── Stores ────────────────────────────
+        WITH p
+        UNWIND $stores AS sData
+            MERGE (s:Store {name:sData.name, address:sData.address})
+            ON CREATE SET s.location = point({latitude:sData.lat, longitude:sData.lon})
+            MERGE (p)-[:SOLD_AT]->(s)
+        """,
+        title=title,
+        url=meta.get("url", ""),
+        desc=meta.get("description", ""),
+        size=meta.get("size", ""),
+        img=meta.get("image", ""),
+        ing_raw=ing_raw,
+        features=meta.get("features", []),
+        nutrition_lines=meta.get("nutrition", []),
+        ingredients=ingredients,
+        brand=brand,
+        category=category,
+        amazon_link=meta.get("amazon_link"),
+        stores=[
+            {
+                "name": s.get("name"),
+                "address": s.get("address"),
+                "lat": s.get("latitude"),
+                "lon": s.get("longitude"),
+            }
+            for s in meta.get("stores", [])
+            if s.get("name") and s.get("address")
+        ],
+        vid=vector_id,
+    )
 
-# 5  Main import script ────────────────────────────────────
-def main():
-    driver = None
+
+def insert_article(tx: Transaction, meta: Dict[str, Any], vector_id: str):
+    if not meta.get("title"):
+        return
+    tx.run(
+        """
+        MERGE (a:Article {title:$title})
+        ON CREATE SET a.vector_id=$vid
+        SET  a += {url:$url, categorie:$cat}
+        """,
+        title=meta.get("title", ""),
+        url=meta.get("url", ""),
+        cat=meta.get("categorie", "Article"),
+        vid=vector_id,
+    )
+
+
+def insert_information(tx: Transaction, meta: Dict[str, Any], vector_id: str):
+    if not meta.get("title"):
+        return
+    tx.run(
+        """
+        MERGE (i:Information {title:$title})
+        ON CREATE SET i.vector_id=$vid
+        SET i.url=$url
+        """,
+        title=meta.get("title", ""),
+        url=meta.get("url", ""),
+        vid=vector_id,
+    )
+
+# ─────────────────────────────
+# 4) Cross‑entity links (recipes ↔ products via ingredients)
+# ─────────────────────────────
+LINK_RECIPES_PRODUCTS = (
+    "MATCH (r:Recipe)-[:CONTAINS]->(i:Ingredient)<-[:CONTAINS]-(p:Product)\n"
+    "MERGE (r)-[:USES {via:i.name}]->(p)"
+)
+
+# ─────────────────────────────
+# 5) Main import
+# ─────────────────────────────
+
+def main(batch_size: int = 1000):
+    driver = GraphDatabase.driver(URI, auth=(USER, PWD))
     try:
-        driver = GraphDatabase.driver(URI, auth=(USER, PWD))
         with driver.session() as sess:
-
-            # Create constraints / index once
+            # Schema -------------------------------------------------------------
             for c in CONSTRAINTS:
                 sess.run(c)
             sess.run(FULLTEXT_IDX)
+            sess.run(POINT_IDX)
 
-            print("🚀 Connected – importing data…")
+            print("🚀 Connected – importing vector documents…")
 
-            # Recipes
-            with open("data/scraping/all_recipes.json", encoding="utf-8") as f:
-                for rec in json.load(f):
-                    sess.execute_write(insert_recipe, rec)
+            files = list(VECTORS_DIR.glob("*.json"))
+            total = len(files)
+            processed = 0
 
-            # Products
-            with open("data/scraping/all_products.json", encoding="utf-8") as f:
-                for prod in json.load(f):
-                    if prod.get("title"):
-                        sess.execute_write(insert_product, prod)
+            while processed < total:
+                chunk = files[processed : processed + batch_size]
+                with sess.begin_transaction() as tx:
+                    for fp in chunk:
+                        try:
+                            data = json.loads(fp.read_text(encoding="utf-8"))
+                        except Exception as e:
+                            print(f"⚠️  Skip {fp.name}: {e}")
+                            continue
 
-            # Link recipes to products they use
+                        meta = data.get("metadata", {})
+                        v_id = data.get("id")
+                        node_type = (
+                            data.get("restricts", [{}])[0].get("allow", ["unknown"])[0]
+                        )
+
+                        if not meta.get("title"):
+                            print(f"⛔ Skip {fp.name}: no title")
+                            continue
+
+                        if node_type == "recipe":
+                            insert_recipe(tx, meta, v_id)
+                        elif node_type == "product":
+                            insert_product(tx, meta, v_id)
+                        elif node_type == "article":
+                            insert_article(tx, meta, v_id)
+                        elif node_type == "information":
+                            insert_information(tx, meta, v_id)
+                        elif node_type == "brand":
+                            # We intentionally ignore standalone brand files now.
+                            print(f"↷ Ignore standalone brand file {fp.name}")
+                        else:
+                            print(f"❓ Unknown type '{node_type}' for {fp.name}, skipped.")
+
+                    tx.commit()
+
+                processed += len(chunk)
+                print(f"   … {processed}/{total} processed")
+
+            # Post‑processing links ---------------------------------------------
             sess.run(LINK_RECIPES_PRODUCTS)
-            print("✅ Import & relationships complete!")
+            print("✅ Import terminé + liens ingrédients établis !")
 
     except Exception as e:
         print(f"❌ Error: {e}")
     finally:
-        if driver:
-            driver.close()
+        driver.close()
+
 
 if __name__ == "__main__":
     main()

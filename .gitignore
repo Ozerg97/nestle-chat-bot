@@ -28,8 +28,8 @@ google_credentials.json
 vertexai_key.json
 
 # === cloud credentials ===
-project/endless-sol-460715-q9-a552b2b3b80e.json
-
+api/endless-sol-460715-q9-a552b2b3b80e.json
+endless-sol-460715-q9-a552b2b3b80e.json
 # === Jupyter / Colab ===
 .ipynb_checkpoints/
 

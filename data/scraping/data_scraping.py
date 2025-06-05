@@ -191,7 +191,7 @@ products, recipes = [], []
 with LINKS_FILE.open(newline="", encoding="utf-8") as f:
     reader = list(csv.reader(f))  
     total_lines = len(reader)
-    print(f"📄 Nombre total de lignes dans le CSV : {total_lines}")
+    print(f"Total number of rows in CSV: {total_lines}")
 
     for row in tqdm(reader, desc="🔎 Scraping pages", unit="page", total=total_lines):
         if len(row) < 2:
@@ -208,7 +208,7 @@ with LINKS_FILE.open(newline="", encoding="utf-8") as f:
             if data:
                 recipes.append(data)
 
-print(f"✅ {len(products)} produits  |  {len(recipes)} recettes sur {total_lines} lignes totales.")
+print(f"✅ {len(products)} products  |  {len(recipes)} recipes on {total_lines} total lines.")
 
 #───────────────────────────
 #  WRITING JSON
@@ -216,4 +216,4 @@ print(f"✅ {len(products)} produits  |  {len(recipes)} recettes sur {total_line
 PRODUCT_OUT.write_text(json.dumps(products, ensure_ascii=False, indent=2), "utf-8")
 RECIPE_OUT.write_text(json.dumps(recipes,  ensure_ascii=False, indent=2), "utf-8")
 
-print(f"→ Fichiers écrits : {PRODUCT_OUT.name}  &  {RECIPE_OUT.name}")
+print(f"→ Written files: {PRODUCT_OUT.name}  &  {RECIPE_OUT.name}")

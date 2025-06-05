@@ -21,11 +21,12 @@ model = TextEmbeddingModel.from_pretrained(MODEL_NAME)
 #─────────────────────────────
 #  INPUT OUTPUT
 #─────────────────────────────
-DATA_DIR   = pathlib.Path("")
-OUTPUT_DIR = pathlib.Path("vector_documents1")
+DATA_DIR   = pathlib.Path("data/scraping/")
+OUTPUT_DIR = pathlib.Path("data/vectorDB/vector_documents")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+DATA_DIR_PRODUCT = pathlib.Path("data/add_amazon_link/")
 
-PRODUCTS_JSON = DATA_DIR / "all_products.json"
+PRODUCTS_JSON = DATA_DIR_PRODUCT / "products_with_amazon.json"
 RECIPES_JSON  = DATA_DIR / "all_recipes.json"
 ARTICLES_JSON = DATA_DIR / "all_articles.json"
 BASICS_JSON   = DATA_DIR / "all_basics.json"
@@ -36,7 +37,7 @@ BRANDS_JSON   = DATA_DIR / "all_brands.json"
 #─────────────────────────────
 
 def build_product_text(p: dict) -> str:
-    """Retourne la chaîne qui sera vectorisée pour un produit."""
+    "Returns the string that will be vectorized for a product."
     return " \n".join(filter(None, [
         "[TYPE: product]",
         "Title: " + str(p.get("title", "") or ""),
@@ -46,7 +47,7 @@ def build_product_text(p: dict) -> str:
 
 
 def build_recipe_text(r: dict) -> str:
-    """Retourne la chaîne qui sera vectorisée pour une recette."""
+    "Returns the string that will be vectorized for a recipe."
     return " \n".join(filter(None, [
         "[TYPE: recipe]",
         "Title: " + str(r.get("title", "") or ""),
@@ -99,7 +100,7 @@ def load_json(path: pathlib.Path) -> List[dict]:
 index = 0
 
 def embed_and_export(items: List[dict], build_fn, item_type: str, start_idx: int = 0) -> int:
-    """Embeds each item, exporte un fichier .json par vector."""
+    """Embeds each item, exports one .json file per vector."""
     global index
     for item in items:
         doc_text = build_fn(item)

@@ -41,4 +41,4 @@ with open(output_file, "w", encoding="utf-8", newline="") as csvfile:
 
         time.sleep(0.5)  
 
-print(f"✅ Terminé. Résultats sauvegardés dans {output_file}")
+print(f"Done. Results saved in {output_file}")
