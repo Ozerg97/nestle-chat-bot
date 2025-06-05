@@ -35,7 +35,7 @@ This project showcases an AI chatbot capable of answering detailed and accurate 
 | **Frontend** | React (Vite) · TypeScript |
 | **Backend API** | Python 3.11 · Flask  |
 | **LLM** | Google Vertex AI – Gemini Flash |
-| **Embeddings** | text-embedding-gecko |
+| **Embeddings** | text-embedding-004 |
 | **Graph DB** | Neo4j Aura (free tier) |
 | **Vector DB** | Vector Search (cloud) |
 
