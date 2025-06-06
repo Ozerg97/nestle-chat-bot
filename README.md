@@ -44,7 +44,7 @@ This project showcases an AI chatbot capable of answering detailed and accurate 
 ## How I Solved the **RAG Limitation Problem**
 
 ### 1. Structured Query Detection
-I implemented a separate module (`structured_query_router.py`) that uses regex and text normalization to detect key phrases like **“how many,” “number of,” and “products”** in user questions.  
+I implemented a separate module (`intelligent_count.py`) that uses regex and text normalization to detect key phrases like **“how many,” “number of,” and “products”** in user questions.  
 - If such keywords are detected, the module queries the **GraphRAG** (Neo4j) using Cypher queries to get exact counts.  
 - Example queries:
   - **"How many products under the coffee category?"** triggers a Cypher query counting nodes with the `IN_CATEGORY` relationship.
