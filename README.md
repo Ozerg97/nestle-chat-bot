@@ -8,8 +8,8 @@ This project showcases an AI chatbot capable of answering detailed and accurate 
 
 | Service | URL (example) |
 |---------|------------------|
-| Front-end (React) | <https://nestle-ui-158884498350.us-central1.run.app> |
-| Backend API (Python/Flask) | <https://nestle2-158884498350.us-central1.run.app> |
+| Front-end (React) | <https://nestle-ui-446821966675.us-central1.run.app> |
+| Backend API (Python/Flask) | <https://nestle-446821966675.us-central1.run.app> |
 | Source Code | <https://github.com/Ozerg97/nestle-chat-bot> |
 
 ---
