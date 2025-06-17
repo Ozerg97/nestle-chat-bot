@@ -1,4 +1,4 @@
-# Nestlé Assignment – AI Chatbot with GraphRAG & Vector Search
+# AI Chatbot with GraphRAG & Vector Search
 
 This project showcases an AI chatbot capable of answering detailed and accurate questions about the **MadeWithNestle.ca** website. It combines **semantic search** (vector search), **graph-based knowledge retrieval (GraphRAG)**, and **LLM-based generation** using **Gemini (Vertex AI)**.
 
