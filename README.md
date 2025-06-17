@@ -4,9 +4,6 @@ This project showcases an AI chatbot capable of answering detailed and accurate 
 
 ---
 
-
----
-
 ## Key Features
 
 | Feature | Details |
